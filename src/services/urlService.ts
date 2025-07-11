@@ -28,3 +28,10 @@ export async function createUrl(url: string) {
   const res = await api.post("/urls", { url });
   return res.data;
 }
+export async function rerunUrl(id: number) {
+  await api.put(`/urls/${id}/rerun`);
+}
+
+export async function deleteUrl(id: number) {
+  await api.delete(`/urls/${id}`);
+}
