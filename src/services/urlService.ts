@@ -35,3 +35,7 @@ export async function rerunUrl(id: number) {
 export async function deleteUrl(id: number) {
   await api.delete(`/urls/${id}`);
 }
+
+export async function stopUrl(id: number) {
+  await api.put(`/urls/${id}/stop`);
+}

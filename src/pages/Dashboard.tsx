@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUrl, deleteUrl, getAllUrls, rerunUrl, UrlData } from "../services/urlService";
+import {
+  createUrl,
+  deleteUrl,
+  getAllUrls,
+  rerunUrl,
+  stopUrl,
+  UrlData,
+} from "../services/urlService";
 import { Dialog } from "@headlessui/react";
 
 export default function Dashboard() {
@@ -69,6 +76,11 @@ export default function Dashboard() {
     setSelectedIds([]);
     loadUrls();
   };
+  const handleGroupStop = async () => {
+  await Promise.all(selectedIds.map(id => stopUrl(id)));
+  setSelectedIds([]);
+  loadUrls();
+};
 
   return (
     <div className="p-4 max-w-full mx-auto">
@@ -105,6 +117,13 @@ export default function Dashboard() {
           className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50"
         >
           Delete Selected
+        </button>
+        <button
+          onClick={handleGroupStop}
+          disabled={selectedIds.length === 0}
+          className="px-4 py-2 bg-yellow-600 text-white rounded disabled:opacity-50"
+        >
+          Stop Selected
         </button>
       </div>
 
@@ -143,7 +162,10 @@ export default function Dashboard() {
                   className="hover:bg-gray-700 cursor-pointer"
                   onClick={() => navigate(`/details/${url.id}`)}
                 >
-                  <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="px-2 py-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(url.id)}
