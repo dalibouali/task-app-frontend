@@ -143,7 +143,7 @@ export default function Dashboard() {
                   className="hover:bg-gray-700 cursor-pointer"
                   onClick={() => navigate(`/details/${url.id}`)}
                 >
-                  <td className="px-2 py-2">
+                  <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(url.id)}
