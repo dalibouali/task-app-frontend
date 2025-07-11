@@ -23,3 +23,8 @@ export async function getAllUrls(): Promise<UrlData[]> {
     throw error;
   }
 }
+
+export async function createUrl(url: string) {
+  const res = await api.post("/urls", { url });
+  return res.data;
+}
