@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllUrls, UrlData } from "../services/urlService";
+import { createUrl, getAllUrls, UrlData } from "../services/urlService";
+import { Dialog } from "@headlessui/react";
 
 export default function Dashboard() {
   const [urls, setUrls] = useState<UrlData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [newUrl, setNewUrl] = useState("");
 
   useEffect(() => {
+    loadUrls();
+  }, []);
+const loadUrls = () => {
     getAllUrls()
       .then(data => {
         setUrls(data);
@@ -18,26 +24,41 @@ export default function Dashboard() {
         console.error("Failed to load URLs:", err);
         setLoading(false);
       });
-  }, []);
-
+  };
   const filteredUrls = urls.filter(url =>
     url.title.toLowerCase().includes(search.toLowerCase()) ||
     url.url.toLowerCase().includes(search.toLowerCase())
   );
+  const handleAddUrl = async () => {
+    if (!newUrl) return;
+    await createUrl(newUrl);
+    setNewUrl("");
+    setIsOpen(false);
+    loadUrls();
+  };
 
   return (
     <div className="p-4 max-w-full mx-auto">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-4">
-        <input
-          type="text"
-          placeholder="Search by title or URL..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="p-2 border border-sky-600 rounded w-full sm:w-1/3"
-        />
-      </div>
+  <div className="flex-grow">
+    <input
+      type="text"
+      placeholder="Search by title or URL..."
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      className="p-2 border border-sky-600 rounded w-full"
+    />
+  </div>
+  <button
+    onClick={() => setIsOpen(true)}
+    className="px-4 py-2 bg-green-600 text-white rounded"
+  >
+    + Add URL
+  </button>
+</div>
+
 
       {loading ? (
         <p>Loading...</p>
@@ -48,6 +69,7 @@ export default function Dashboard() {
           <table className="min-w-full border border-gray-600">
             <thead className="bg-sky-800">
               <tr>
+                <th className="px-4 py-2">URL</th>
                 <th className="px-4 py-2">Title</th>
                 <th className="px-4 py-2">HTML</th>
                 <th className="px-4 py-2">H1</th>
@@ -66,6 +88,7 @@ export default function Dashboard() {
                   className="hover:bg-gray-700 cursor-pointer"
                   onClick={() => navigate(`/details/${url.id}`)}
                 >
+                  <td className="px-4 py-2">{url.url}</td>
                   <td className="px-4 py-2">{url.title}</td>
                   <td className="px-4 py-2">{url.htmlVersion}</td>
                   <td className="px-4 py-2">{url.h1Count}</td>
@@ -91,6 +114,42 @@ export default function Dashboard() {
           </table>
         </div>
       )}
+            <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
+  {/* Semi-transparent backdrop */}
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+
+  {/* Centered modal */}
+  <div className="fixed inset-0 flex items-center justify-center p-4">
+    <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-6 border border-gray-700">
+      <h2 className="text-2xl font-bold text-white">Add a new URL</h2>
+
+      <input
+        type="text"
+        placeholder="https://example.com"
+        value={newUrl}
+        onChange={(e) => setNewUrl(e.target.value)}
+        className="p-3 bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded w-full focus:outline-none focus:ring-2 focus:ring-sky-500"
+      />
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleAddUrl}
+          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded transition duration-200"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</Dialog>
+
     </div>
   );
+  
 }
