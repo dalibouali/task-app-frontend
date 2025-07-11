@@ -35,7 +35,7 @@ export default function Dashboard() {
           placeholder="Search by title or URL..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="p-2 border border-gray-600 rounded w-full sm:w-1/3"
+          className="p-2 border border-sky-600 rounded w-full sm:w-1/3"
         />
       </div>
 
@@ -46,7 +46,7 @@ export default function Dashboard() {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-600">
-            <thead className="bg-gray-800">
+            <thead className="bg-sky-800">
               <tr>
                 <th className="px-4 py-2">Title</th>
                 <th className="px-4 py-2">HTML</th>
