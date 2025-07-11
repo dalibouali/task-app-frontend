@@ -1,4 +1,4 @@
-const baseUrl = "http://localhost:8080/api";
+import { api } from "./axios";
 
 export type UrlData = {
   id: number;
@@ -15,10 +15,11 @@ export type UrlData = {
 };
 
 export async function getAllUrls(): Promise<UrlData[]> {
-  const res = await fetch(`${baseUrl}/urls`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch URLs");
+  try {
+    const res = await api.get("/urls");
+    return res.data.urls;
+  } catch (error) {
+    console.error("Failed to fetch URLs:", error);
+    throw error;
   }
-  const data = await res.json();
-  return data.urls;
 }
