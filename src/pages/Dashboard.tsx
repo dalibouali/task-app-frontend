@@ -169,7 +169,7 @@ const loadUrls = (showLoading = false) => {
                 {urls.map((url) => (
                   <tr
                     key={url.id}
-                    className="hover:bg-gray-700 cursor-pointer"
+                    className="hover:bg-gray-700 hover:text-white cursor-pointer"
                     onClick={() => navigate(`/details/${url.id}`)}
                   >
                     <td
