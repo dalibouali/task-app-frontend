@@ -18,32 +18,35 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const [newUrl, setNewUrl] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
-    loadUrls();
+  loadUrls(true); 
 
-    const interval = setInterval(() => {
-      loadUrls();
-    }, 5000);
+  const interval = setInterval(() => {
+    loadUrls(false);
+  }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
-  const loadUrls = () => {
-    getAllUrls()
-      .then((data) => {
-        setUrls(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load URLs:", err);
-        setLoading(false);
-      });
-  };
-  const filteredUrls = urls.filter(
-    (url) =>
-      url.title.toLowerCase().includes(search.toLowerCase()) ||
-      url.url.toLowerCase().includes(search.toLowerCase())
-  );
+  return () => clearInterval(interval);
+}, [currentPage, search]);
+
+const loadUrls = (showLoading = false) => {
+  if (showLoading) setLoading(true);
+  getAllUrls(currentPage, itemsPerPage, search)
+    .then((data) => {
+      setUrls(data.urls);
+      setTotal(data.total);
+      if (showLoading) setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Failed to load URLs:", err);
+      if (showLoading) setLoading(false);
+    });
+};
+
+
   const handleAddUrl = async () => {
     if (!newUrl) return;
     await createUrl(newUrl);
@@ -51,6 +54,7 @@ export default function Dashboard() {
     setIsOpen(false);
     loadUrls();
   };
+
   const onSelect = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -58,10 +62,10 @@ export default function Dashboard() {
   };
 
   const selectAll = () => {
-    if (selectedIds.length === filteredUrls.length) {
+    if (selectedIds.length === urls.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredUrls.map((u) => u.id));
+      setSelectedIds(urls.map((u) => u.id));
     }
   };
 
@@ -76,11 +80,12 @@ export default function Dashboard() {
     setSelectedIds([]);
     loadUrls();
   };
+
   const handleGroupStop = async () => {
-  await Promise.all(selectedIds.map(id => stopUrl(id)));
-  setSelectedIds([]);
-  loadUrls();
-};
+    await Promise.all(selectedIds.map((id) => stopUrl(id)));
+    setSelectedIds([]);
+    loadUrls();
+  };
 
   return (
     <div className="p-4 max-w-full mx-auto">
@@ -92,7 +97,10 @@ export default function Dashboard() {
             type="text"
             placeholder="Search by title or URL..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1); // reset to first page on search
+            }}
             className="p-2 border border-sky-600 rounded w-full"
           />
         </div>
@@ -103,6 +111,7 @@ export default function Dashboard() {
           + Add URL
         </button>
       </div>
+
       <div className="flex gap-4 mb-4">
         <button
           onClick={handleGroupRerun}
@@ -129,97 +138,120 @@ export default function Dashboard() {
 
       {loading ? (
         <p>Loading...</p>
-      ) : filteredUrls.length === 0 ? (
+      ) : urls.length === 0 ? (
         <p>No URLs found matching your search.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-600">
-            <thead className="bg-sky-800">
-              <tr>
-                <th className="px-2 py-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.length === filteredUrls.length}
-                    onChange={selectAll}
-                  />
-                </th>
-                <th className="px-4 py-2">URL</th>
-                <th className="px-4 py-2">Title</th>
-                <th className="px-4 py-2">HTML</th>
-                <th className="px-4 py-2">H1</th>
-                <th className="px-4 py-2">H2</th>
-                <th className="px-4 py-2">Internal</th>
-                <th className="px-4 py-2">External</th>
-                <th className="px-4 py-2">Broken</th>
-                <th className="px-4 py-2">Login</th>
-                <th className="px-4 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUrls.map((url) => (
-                <tr
-                  key={url.id}
-                  className="hover:bg-gray-700 cursor-pointer"
-                  onClick={() => navigate(`/details/${url.id}`)}
-                >
-                  <td
-                    className="px-2 py-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-600">
+              <thead className="bg-sky-800">
+                <tr>
+                  <th className="px-2 py-2">
                     <input
                       type="checkbox"
-                      checked={selectedIds.includes(url.id)}
-                      onChange={() => onSelect(url.id)}
+                      checked={selectedIds.length === urls.length}
+                      onChange={selectAll}
                     />
-                  </td>
-                  <td className="px-4 py-2">{url.url}</td>
-                  <td className="px-4 py-2">{url.title}</td>
-                  <td className="px-4 py-2">{url.htmlVersion}</td>
-                  <td className="px-4 py-2">{url.h1Count}</td>
-                  <td className="px-4 py-2">{url.h2Count}</td>
-                  <td className="px-4 py-2">{url.internalLinks}</td>
-                  <td className="px-4 py-2">{url.externalLinks}</td>
-                  <td className="px-4 py-2">{url.brokenLinks}</td>
-                  <td className="px-4 py-2">
-                    {url.hasLoginForm ? "Yes" : "No"}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-sm ${
-                        url.status === "done"
-                          ? "bg-green-600"
-                          : url.status === "running"
-                          ? "bg-yellow-600"
-                          : url.status === "queued"
-                          ? "bg-blue-600"
-                          : "bg-red-600"
-                      }`}
-                    >
-                      {url.status}
-                    </span>
-                  </td>
+                  </th>
+                  <th className="px-4 py-2">URL</th>
+                  <th className="px-4 py-2">Title</th>
+                  <th className="px-4 py-2">HTML</th>
+                  <th className="px-4 py-2">H1</th>
+                  <th className="px-4 py-2">H2</th>
+                  <th className="px-4 py-2">Internal</th>
+                  <th className="px-4 py-2">External</th>
+                  <th className="px-4 py-2">Broken</th>
+                  <th className="px-4 py-2">Login</th>
+                  <th className="px-4 py-2">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {urls.map((url) => (
+                  <tr
+                    key={url.id}
+                    className="hover:bg-gray-700 cursor-pointer"
+                    onClick={() => navigate(`/details/${url.id}`)}
+                  >
+                    <td
+                      className="px-2 py-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(url.id)}
+                        onChange={() => onSelect(url.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-2">{url.url}</td>
+                    <td className="px-4 py-2">{url.title}</td>
+                    <td className="px-4 py-2">{url.htmlVersion}</td>
+                    <td className="px-4 py-2">{url.h1Count}</td>
+                    <td className="px-4 py-2">{url.h2Count}</td>
+                    <td className="px-4 py-2">{url.internalLinks}</td>
+                    <td className="px-4 py-2">{url.externalLinks}</td>
+                    <td className="px-4 py-2">{url.brokenLinks}</td>
+                    <td className="px-4 py-2">
+                      {url.hasLoginForm ? "Yes" : "No"}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm ${
+                          url.status === "done"
+                            ? "bg-green-600"
+                            : url.status === "running"
+                            ? "bg-yellow-600"
+                            : url.status === "queued"
+                            ? "bg-blue-600"
+                            : "bg-red-600"
+                        }`}
+                      >
+                        {url.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex justify-center gap-4 mt-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-sky-600 text-white rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-white">
+              Page {currentPage} of {Math.ceil(total / itemsPerPage)}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  prev < Math.ceil(total / itemsPerPage) ? prev + 1 : prev
+                )
+              }
+              disabled={currentPage >= Math.ceil(total / itemsPerPage)}
+              className="px-4 py-2 bg-sky-600 text-white rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
+
       <Dialog
         open={isOpen}
         onClose={() => setIsOpen(false)}
         className="relative z-50"
       >
-        {/* Semi-transparent backdrop */}
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           aria-hidden="true"
         />
-
-        {/* Centered modal */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-6 border border-gray-700">
             <h2 className="text-2xl font-bold text-white">Add a new URL</h2>
-
             <input
               type="text"
               placeholder="https://example.com"
@@ -227,7 +259,6 @@ export default function Dashboard() {
               onChange={(e) => setNewUrl(e.target.value)}
               className="p-3 bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded w-full focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
-
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsOpen(false)}

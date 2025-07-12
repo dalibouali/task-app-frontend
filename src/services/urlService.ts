@@ -14,15 +14,24 @@ export type UrlData = {
   status: "queued" | "running" | "done" | "error";
 };
 
-export async function getAllUrls(): Promise<UrlData[]> {
-  try {
-    const res = await api.get("/urls");
-    return res.data.urls;
-  } catch (error) {
-    console.error("Failed to fetch URLs:", error);
-    throw error;
-  }
+export async function getAllUrls(
+  page: number,
+  pageSize: number,
+  search: string
+): Promise<{ urls: UrlData[], total: number }> {
+  const res = await api.get("/urls", {
+    params: {
+      page,
+      pageSize,
+      search
+    }
+  });
+  return {
+    urls: res.data.urls,
+    total: res.data.total
+  };
 }
+
 
 export async function createUrl(url: string) {
   const res = await api.post("/urls", { url });
