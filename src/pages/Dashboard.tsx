@@ -21,31 +21,52 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [sortField, setSortField] = useState<string>("title");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  const sortedUrls = [...urls].sort((a, b) => {
+    let aValue = a[sortField as keyof UrlData];
+    let bValue = b[sortField as keyof UrlData];
+
+    if (typeof aValue === "string") aValue = aValue.toLowerCase();
+    if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
   useEffect(() => {
-  loadUrls(true); 
+    loadUrls(true);
 
-  const interval = setInterval(() => {
-    loadUrls(false);
-  }, 5000);
+    const interval = setInterval(() => {
+      loadUrls(false);
+    }, 5000);
 
-  return () => clearInterval(interval);
-}, [currentPage, search]);
+    return () => clearInterval(interval);
+  }, [currentPage, search]);
 
-const loadUrls = (showLoading = false) => {
-  if (showLoading) setLoading(true);
-  getAllUrls(currentPage, itemsPerPage, search)
-    .then((data) => {
-      setUrls(data.urls);
-      setTotal(data.total);
-      if (showLoading) setLoading(false);
-    })
-    .catch((err) => {
-      console.error("Failed to load URLs:", err);
-      if (showLoading) setLoading(false);
-    });
-};
+  const loadUrls = (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    getAllUrls(currentPage, itemsPerPage, search)
+      .then((data) => {
+        setUrls(data.urls);
+        setTotal(data.total);
+        if (showLoading) setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load URLs:", err);
+        if (showLoading) setLoading(false);
+      });
+  };
 
+  function handleSort(field: string) {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  }
 
   const handleAddUrl = async () => {
     if (!newUrl) return;
@@ -154,19 +175,62 @@ const loadUrls = (showLoading = false) => {
                     />
                   </th>
                   <th className="px-4 py-2">URL</th>
-                  <th className="px-4 py-2">Title</th>
-                  <th className="px-4 py-2">HTML</th>
-                  <th className="px-4 py-2">H1</th>
-                  <th className="px-4 py-2">H2</th>
-                  <th className="px-4 py-2">Internal</th>
-                  <th className="px-4 py-2">External</th>
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("title")}
+                  >
+                    Title{" "}
+                    {sortField === "title" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("htmlVersion")}
+                  >
+                    HTML{" "}
+                    {sortField === "htmlVersion" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("h1Count")}
+                  >
+                    H1{" "}
+                    {sortField === "h1Count" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("h2Count")}
+                  >
+                    H2{" "}
+                    {sortField === "h2Count" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("internalLinks")}
+                  >
+                    Internal{" "}
+                    {sortField === "internalLinks" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th
+                    className="px-4 py-2 cursor-pointer"
+                    onClick={() => handleSort("externalLinks")}
+                  >
+                    Internal{" "}
+                    {sortField === "externalLinks" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
                   <th className="px-4 py-2">Broken</th>
                   <th className="px-4 py-2">Login</th>
                   <th className="px-4 py-2">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {urls.map((url) => (
+                {sortedUrls.map((url) => (
                   <tr
                     key={url.id}
                     className="hover:bg-gray-700 hover:text-white cursor-pointer"
