@@ -189,7 +189,7 @@ const loadUrls = (showLoading = false) => {
                     <td className="px-4 py-2">{url.h2Count}</td>
                     <td className="px-4 py-2">{url.internalLinks}</td>
                     <td className="px-4 py-2">{url.externalLinks}</td>
-                    <td className="px-4 py-2">{url.brokenLinks}</td>
+                    <td className="px-4 py-2">{url.brokenLinksCount}</td>
                     <td className="px-4 py-2">
                       {url.hasLoginForm ? "Yes" : "No"}
                     </td>
@@ -222,7 +222,7 @@ const loadUrls = (showLoading = false) => {
             >
               Previous
             </button>
-            <span className="px-4 py-2 text-white">
+            <span className="px-4 py-2 text-black">
               Page {currentPage} of {Math.ceil(total / itemsPerPage)}
             </span>
             <button

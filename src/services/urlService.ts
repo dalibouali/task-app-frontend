@@ -9,10 +9,18 @@ export type UrlData = {
   h2Count: number;
   internalLinks: number;
   externalLinks: number;
-  brokenLinks: number;
+  brokenLinksCount: number;
+  brokenLinksList : BrokenLink[];
   hasLoginForm: boolean;
   status: "queued" | "running" | "done" | "error";
 };
+
+export interface BrokenLink {
+  id: number;          
+  url: string;
+  statusCode: number;
+  urlId: number;        
+}
 
 export async function getAllUrls(
   page: number,

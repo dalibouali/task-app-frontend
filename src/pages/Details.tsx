@@ -2,19 +2,24 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../services/axios";
 import { PieChart, Pie, Cell, Legend } from "recharts";
-import { UrlData } from "../services/urlService";
+import { UrlData , BrokenLink } from "../services/urlService";
 
 export default function Details() {
   const { id } = useParams();
   const [url, setUrl] = useState<UrlData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [brokenLinks, setBrokenLinks] = useState<BrokenLink[]>([]);
 
-useEffect(() => {
-  // load all URLs and find the one by id
-  api.get(`/urls`)
+ useEffect(() => {
+  api.get(`/urls/${id}`)
     .then(res => {
-      const found = res.data.urls.find((u: UrlData) => u.id === Number(id));
-      setUrl(found);
+      setUrl(res.data);
+      setBrokenLinks(res.data.brokenLinksList.map((b: any) => ({
+        id: b.ID,
+        url: b.URL,
+        statusCode: b.StatusCode,
+        urlId: b.UrlID
+      })));
       setLoading(false);
     })
     .catch(err => {
@@ -22,7 +27,6 @@ useEffect(() => {
       setLoading(false);
     });
 }, [id]);
-
   if (loading) return <p>Loading...</p>;
   if (!url) return <p>No data found for this URL.</p>;
 
@@ -61,10 +65,17 @@ useEffect(() => {
       </div>
 
       <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-2">Broken Links</h2>
-        <p>Count: {url.brokenLinks}</p>
-        <p className="text-gray-400">(detailed list needs backend support)</p>
-      </div>
+  <h2 className="text-xl font-semibold mb-2">Broken Links</h2>
+  <p>Count: {url.brokenLinksCount}</p>
+  <ul className="mt-2 space-y-1">
+    {brokenLinks.map((link) => (
+      <li key={link.id}>
+        <span className="text-red-500">{link.url}</span>
+        <span className="ml-2 text-gray-500">(Status: {link.statusCode})</span>
+      </li>
+    ))}
+  </ul>
+</div>
     </div>
   );
 }
