@@ -1,12 +1,45 @@
-# React + Vite
+# Task App Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the **frontend** part of the Task App built with **React**, **Vite**, and **TypeScript**.  
+It communicates with the Go Gin backend via REST APIs.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+✅ Paginated and sortable dashboard of analyzed URLs  
+✅ View URL details (HTML version, title, H1/H2 count, links, etc.)  
+✅ Displays broken links  
+✅ Small automated tests using Vitest + Testing Library
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## ⚙️ Prerequisites
+
+- Node.js >= 16
+- npm or yarn
+- Backend API running (see backend repository)
+
+---
+
+## 🔥 Getting started
+
+### 1️⃣ Clone the repository
+```bash
+git clone https://github.com/dalibouali/task-app-frontend.git
+cd task-app-frontend
+```
+### 2️⃣ Install dependencies
+Install all project dependencies using npm or yarn.
+
+```bash
+npm install
+# or
+yarn install
+```
+### 3️⃣ Run project
+```bash
+npm run dev
+# or
+yarn dev
+```
